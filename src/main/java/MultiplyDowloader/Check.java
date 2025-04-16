@@ -24,27 +24,26 @@ public class Check implements Callable<Map<String, String>> {
     /**
      * 作为线程执行体的返回值，包含Content-Length和Content-Type
      */
-    private Map<String, String> map;
-    private String checkPath;
+    private final Map<String, String> map;
+    private final String checkPath;
+
     public Check(String checkPath) {
         this.checkPath = checkPath;
-        map = new HashMap<>();
+        this.map = new HashMap<>();
     }
 
     @Override
     public Map<String, String> call() {
-        try {
-            CloseableHttpClient client = HttpClients.createDefault();
-            HttpGet get = new HttpGet(checkPath);
-            CloseableHttpResponse response = client.execute(get);
-            println(response.getStatusLine());
-            if (response.getStatusLine().getStatusCode() == 200) {
-                map.put("Content-Type", response.getEntity().getContentType().toString());
-                map.put("Content-Length", response.getEntity().getContentLength()+"");
-                Arrays.stream(response.getAllHeaders()).forEach(Main::println);
+        try (var client = HttpClients.createDefault()) {
+            var get  = new HttpGet(checkPath);
+            try (var response = client.execute(get)) {
+                println(response.getStatusLine());
+                if (response.getStatusLine().getStatusCode() == 200) {
+                    map.put("Content-Type", response.getEntity().getContentType().toString());
+                    map.put("Content-Length", response.getEntity().getContentLength()+"");
+                    Arrays.stream(response.getAllHeaders()).forEach(Main::println);
+                }
             }
-            client.close();
-            response.close();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -53,13 +52,13 @@ public class Check implements Callable<Map<String, String>> {
     }
 
     public Map<String, String> getMap() {
-        return map;
+        return Map.copyOf(map);
     }
 
     /**
     public static void main(String[] args) throws Exception{
         //FutureTask<Map<String, String>> fu = new FutureTask<>(new Check("http://dl.mqego.com/soft1/navicatmysqlfront.zip"));
-        //new Thread(fu).start();
+        //Thread.ofVirtual().start(fu);
         //println(fu.get());
     }
      */

@@ -5,7 +5,8 @@ apply plugin: 'java'
 compileJava.options.encoding = 'UTF-8'
 version = '1.0'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 21
+targetCompatibility = 21
 sourceSets {
     main {
         resources {
@@ -20,11 +21,12 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.4'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 }
+
 task copyJars (type:Copy) {
-    from configurations.runtime
+    from configurations.runtimeClasspath
     into 'build/libs/configs'
 }
 
@@ -40,7 +42,7 @@ task generateJar(type: Jar, dependsOn: [copyJars, copyConfigs, jar]) {
                 'Implementation-Version': version,
                 'Created-By': 'crazyStrome',
                 'Main-Class': 'MultiplyDowloader.Main',
-                'Class-Path': configurations.compile.collect {
+                'Class-Path': configurations.runtimeClasspath.collect {
                     'lib' + it.getName().join(' ')
                 }
         )
@@ -53,4 +55,3 @@ task generateJar(type: Jar, dependsOn: [copyJars, copyConfigs, jar]) {
         from "$projectDir/src/main/java/MultiplyDowloader"
     }
 }
-
